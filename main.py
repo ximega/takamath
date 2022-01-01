@@ -15,6 +15,7 @@ class Keywords:
     CTG='ctg'
     IML='iml'
     INC='inc'
+    SQRT='sqrt'
 
 class Errors:
     ValueError="Value Error"
@@ -87,6 +88,10 @@ def compile_it():
     wfile = open(fn.replace("takam", "js"), "w+")
 
     for token in tokens:
+        if not token[1] and token[0] not in ['START:', 'END', '.main']:
+            exception(Errors.SyntaxError, f"Null operand at {token[3]}, command: {token[0]}", fn, wfile)
+            return
+
         if token[0] == 'START:':
             wfile.write("""
 function main() {
@@ -220,6 +225,14 @@ function main() {
 
             wfile.write(f"""
     {token[1]} *= {token[1]};""")
+
+        elif token[0] == Keywords.SQRT:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = Math.sqrt({token[1]});""")
 
         else:
             exception(Errors.CommandError, f"Unkown command at {token[3]}, name: {token[0]}", fn, wfile)
