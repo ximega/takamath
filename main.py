@@ -13,7 +13,8 @@ class Keywords:
     COS='cos'
     TG='tg'
     CTG='ctg'
-
+    IML='iml'
+    INC='inc'
 
 class Errors:
     ValueError="Value Error"
@@ -178,7 +179,7 @@ function main() {
                 return
 
             wfile.write(f"""
-    {token[1]} = Math.sin({token[1]})""")
+    {token[1]} = Math.sin({token[1]});""")
 
         elif token[0] == Keywords.COS:
             if isinstance(token[2], list) or token[2]: 
@@ -186,7 +187,7 @@ function main() {
                 return
 
             wfile.write(f"""
-    {token[1]} = Math.cos({token[1]})""")
+    {token[1]} = Math.cos({token[1]});""")
 
         elif token[0] == Keywords.TG:
             if isinstance(token[2], list) or token[2]: 
@@ -194,7 +195,7 @@ function main() {
                 return
 
             wfile.write(f"""
-    {token[1]} = Math.tan({token[1]})""")
+    {token[1]} = Math.tan({token[1]});""")
 
         elif token[0] == Keywords.CTG:
             if isinstance(token[2], list) or token[2]: 
@@ -202,7 +203,23 @@ function main() {
                 return
 
             wfile.write(f"""
-    {token[1]} = Math.ctg({token[1]})""")
+    {token[1]} = Math.ctg({token[1]});""")
+
+        elif token[0] == Keywords.IML:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} += 1;""")
+
+        elif token[0] == Keywords.INC:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} *= {token[1]};""")
 
         else:
             exception(Errors.CommandError, f"Unkown command at {token[3]}, name: {token[0]}", fn, wfile)

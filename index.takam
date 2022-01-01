@@ -1,6 +1,15 @@
 START:
 
 .main
+    ; ((a^2*b*x)-3)/(b+c) - 5ac + (xc/(a^2*b))
+    ; a = 1
+    ; b = 2
+    ; c = 3
+    ; x = 5
+    ; a ^ 2
+    ; a * b
+    ; 
+
     syscall 1x00, ax
 
 END
