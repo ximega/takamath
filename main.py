@@ -9,19 +9,30 @@ class Keywords:
     DIV='div'
     NEG='neg'
     SYSCALL='syscall'
+    SIN='sin'
+    COS='cos'
+    TG='tg'
+    CTG='ctg'
+
 
 class Errors:
     ValueError="Value Error"
     NameError="Name Error"
     RegisterError="Register Error"
+    CommandError="Command Error"
+    SyntaxError="Syntax Error"
 
 
 small_chars = 'qwertyuiopasdfghjklzxcvbnm'
 registers = [f"{chr}x" for chr in small_chars]
-print(registers, len(registers))
+
+reserved_words = ["pi"]
+
+for reg in registers: reserved_words.append(reg)
+
 
 def exception(err_name, text, file_name=None, wfile=None):
-    print(err_name + ':\n' + text)
+    print(err_name + ':\n' + text + '\n\n\n')
     if wfile:
         wfile.close()
     if file_name:
@@ -29,20 +40,30 @@ def exception(err_name, text, file_name=None, wfile=None):
         os.remove(fp)
     return
 
-def do_tokens():
+def compile_it():
     # get file name
     fn = input("file name:")
     # get lines
     lines = open(fn).read().split('\n')
 
     # exception for incorrect extension
-    if fn.split(".")[-1] != "takam": exception(Errors.NameError, "This file is not file with '.takam' extension")
+    if fn.split(".")[-1] != "takam": 
+        exception(Errors.NameError, "This file is not file with '.takam' extension")
+        return
 
     tokens: list[tuple[str, str, str, int]] = []
 
     for pos in range(1, len(lines)+1):
+        line = lines[pos-1]
+
+        # threw error if last char is ","
+        if len(line) > 0 and not line.strip().startswith(";"):
+            if line[-1] in [",", "$", "\\", "^"]:
+                exception(Errors.SyntaxError, f"Unexcepted char (',') at {pos}")
+                return
+
         # get token (line, striped)
-        token = lines[pos-1].strip().split(" ")
+        token = line.strip().split(" ")
 
         # kw
         token_0 = token[0]
@@ -61,23 +82,17 @@ def do_tokens():
 
         tokens.append((token_0, token_1, token_2, pos))
 
-    return (tokens, fn)
-
-def compile_it():
-    # there is (tokens, file_name)
-    res = do_tokens()
-    # this is really tokens
-    tokens = res[0]
-    # get file name
-    fn = res[1]
-
     # file for writing, res[1] is file name
-    wfile = open(res[1].replace("takam", "js"), "w+")
+    wfile = open(fn.replace("takam", "js"), "w+")
 
     for token in tokens:
         if token[0] == 'START:':
             wfile.write("""
-function main() {""")
+function main() {
+    pi = Math.PI;""")
+
+        elif token[0] in ['.main', 'END']:
+            pass
 
         elif token[0] == Keywords.USE:
             # all_registers is registers which used in use
@@ -87,49 +102,121 @@ function main() {""")
             # if count of registers in 3 cell, get all them
             if isinstance(token[2], list):
                 [all_registers.append(register) for register in token[2]]
-            else:
+            elif token[2]:
                 all_registers.append(token[2])
+
             for register in all_registers:
-                if register not in registers: exception(Errors.RegisterError, f"Incorrect register at {token[3]}, name: {register}")
+                if register not in registers: 
+                    exception(Errors.RegisterError, f"Incorrect register at {token[3]}, name: {register}")
+                    return
+
                 wfile.write(f"""
     let {register} = 0;""")
     
         elif token[0] == Keywords.MOVE:
             # if token[2] is list, cause if it is list in token[2] is two or above vars
-            if isinstance(token[2], list): exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
-            if token[1] not in registers: exception(Errors.RegisterError, f"Incorrect register at {token[3]}, name: {token[1]}")
+            if isinstance(token[2], list): 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+            if token[1] not in registers: 
+                exception(Errors.RegisterError, f"Incorrect register at {token[3]}, name: {token[1]}")
+                return
             # if token[2] is not register, not string, not number
-            if token[2] not in registers and not token[2].startswith('"') and not token[2].isdigit(): exception(Errors.RegisterError, f"Incorrect register at {token[3]}, name: {token[2]}")
+            if token[2] not in reserved_words and not token[2].startswith('"') and not token[2].isdigit(): 
+                exception(Errors.RegisterError, f"Incorrect register at {token[3]}, name: {token[2]}")
+                return
+
             wfile.write(f"""
     {token[1]} = {token[2]};""")
 
         elif token[0] == Keywords.ADD:
-            if isinstance(token[2], list): exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+            if isinstance(token[2], list): 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
             wfile.write(f"""
     {token[1]} += {token[2]};""")
 
         elif token[0] == Keywords.SUB:
-            if isinstance(token[2], list): exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+            if isinstance(token[2], list): 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
 
             wfile.write(f"""
     {token[1]} *= {token[2]};""")
 
         elif token[0] == Keywords.DIV:
-            if isinstance(token[2], list): exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+            if isinstance(token[2], list): 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
 
             wfile.write(f"""
     {token[1]} /= {token[2]};""")
 
+        elif token[0] == Keywords.NEG:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = -{token[1]};""")
+
         elif token[0] == Keywords.SYSCALL:
             if token[1] == "1x00":
+                joined_token_2 = token[2]
+                if isinstance(token[2], list): 
+                    joined_token_2 = ','.join(token[2])
                 wfile.write(f"""
-    console.log({','.join(token[2])})""")
-            elif token[1] == '1x01':
-                wfile.write(f"""
-    """)
+    console.log({joined_token_2});""")
+            else:
+                exception(Errors.ValueError, f"Unkown command for syscall at {token[3]}, name: {token[1]}", fn, wfile)
+                return
+
+        elif token[0] == Keywords.SIN:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = Math.sin({token[1]})""")
+
+        elif token[0] == Keywords.COS:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = Math.cos({token[1]})""")
+
+        elif token[0] == Keywords.TG:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = Math.tan({token[1]})""")
+
+        elif token[0] == Keywords.CTG:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = Math.ctg({token[1]})""")
+
+        else:
+            exception(Errors.CommandError, f"Unkown command at {token[3]}, name: {token[0]}", fn, wfile)
+            return
 
     # finish writing
-    wfile.write("\n}\nmain()")
+    wfile.write("""
+}
+
+Math.ctg = (x) => {
+    return 1 / Math.tan(x)
+}
+
+main();""")
 
 def main():
     try:

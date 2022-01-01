@@ -1,15 +1,6 @@
 START:
 
 .main
-    use ax, bx
-
-    mov ax, 30
-    mov bx, 6
-
-    ; divide it
-    div ax, bx
-    
-    ; print
-    syscall 1x00, ax, bx
+    syscall 1x00, ax
 
 END
