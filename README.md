@@ -39,11 +39,11 @@ START:
 .main
     use ax, bx
 
-    mov ax, pi
+    stp ax
     div ax, 4
     ctg ax
 
-    mov bx, pi
+    stp bx
     sub bx, 5
     div bx, 3
     cos bx
