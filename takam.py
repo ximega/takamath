@@ -24,6 +24,7 @@ class Keywords:
     ARCCOS='arccos'
     ARCTG='arctg'
     ARCCTG='arcctg'
+    POW='pow'
 
 class Errors:
     ValueError="Value Error"
@@ -304,6 +305,14 @@ function main() {
 
             wfile.write(f"""
     {token[1]} = Math.actg({token[1]});""")
+
+        elif token[0] == Keywords.POW:
+            if isinstance(token[2], list): 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = Math.pow({token[1]}, {token[2]});""")
 
         else:
             exception(Errors.CommandError, f"Unkown command at {token[3]}, name: {token[0]}", fn, wfile)
