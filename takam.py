@@ -25,6 +25,7 @@ class Keywords:
     ARCTG='arctg'
     ARCCTG='arcctg'
     POW='pow'
+    FRC='frc'
 
 class Errors:
     ValueError="Value Error"
@@ -313,6 +314,20 @@ function main() {
 
             wfile.write(f"""
     {token[1]} = Math.pow({token[1]}, {token[2]});""")
+
+        elif token[0] == Keywords.FRC:
+            if isinstance(token[2], list) and len(token[2]) > 2:
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+            elif not token[2]:
+                exception(Errors.SyntaxError, f"After first arguuments should be 2 arguments, was given one at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+            elif isinstance(token[2], str):
+                exception(Errors.ValueError, f"Was given not much arguments in third position", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = {token[2][0]}/{token[2][1]};""")
 
         else:
             exception(Errors.CommandError, f"Unkown command at {token[3]}, name: {token[0]}", fn, wfile)
