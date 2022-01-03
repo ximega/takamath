@@ -112,7 +112,8 @@ def compile_it():
         if token[0] == 'START:':
             wfile.write("""
 function main() {
-    pi = Math.PI;""")
+    pi = Math.PI;
+    e = Math.E;""")
 
         elif token[0] in ['.main', 'END']:
             pass
