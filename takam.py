@@ -20,6 +20,10 @@ class Keywords:
     LG='lg'
     RAD='rad'
     SETPI='stp'
+    ARCSIN='arcsin'
+    ARCCOS='arccos'
+    ARCTG='arctg'
+    ARCCTG='arcctg'
 
 class Errors:
     ValueError="Value Error"
@@ -45,6 +49,13 @@ def exception(err_name, text, file_name=None, wfile=None):
         fp = os.path.join(os.path.abspath(os.path.dirname(__file__)), wfile.name)
         os.remove(fp)
     return
+
+def is_num(num) -> bool:
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False
 
 def compile_it():
     # get file name
@@ -132,7 +143,7 @@ function main() {
                 exception(Errors.RegisterError, f"Incorrect register at {token[3]}, name: {token[1]}")
                 return
             # if token[2] is not register, not string, not number
-            if token[2] not in reserved_words and not token[2].startswith('"') and not token[2].isdigit(): 
+            if token[2] not in reserved_words and not token[2].startswith('"') and not is_num(token[2]): 
                 exception(Errors.RegisterError, f"Incorrect register at {token[3]}, name: {token[2]}")
                 return
 
@@ -262,13 +273,37 @@ function main() {
             wfile.write(f"""
     {token[1]} = pi/180 * {token[1]};""")
 
-        elif token[0] == Keywords.SETPI:
+        elif token[0] == Keywords.ARCSIN:
             if isinstance(token[2], list) or token[2]: 
                 exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
                 return
 
             wfile.write(f"""
-    {token[1]} = Math.PI;""")
+    {token[1]} = Math.asin({token[1]});""")
+
+        elif token[0] == Keywords.ARCSIN:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = Math.acos({token[1]});""")
+
+        elif token[0] == Keywords.ARCTG:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = Math.atan({token[1]});""")
+
+        elif token[0] == Keywords.ARCCTG:
+            if isinstance(token[2], list) or token[2]: 
+                exception(Errors.ValueError, f"Maximum of arguments was reach at {token[3]}, command: {token[0]}", fn, wfile)
+                return
+
+            wfile.write(f"""
+    {token[1]} = Math.actg({token[1]});""")
 
         else:
             exception(Errors.CommandError, f"Unkown command at {token[3]}, name: {token[0]}", fn, wfile)
@@ -280,6 +315,10 @@ function main() {
 
 Math.ctg = (x) => {
     return 1 / Math.tan(x)
+}
+
+Math.actg = (x) => {
+    return Math.PI / 2 - Math.atan(x);
 }
 
 function exception(err_name, text) {
